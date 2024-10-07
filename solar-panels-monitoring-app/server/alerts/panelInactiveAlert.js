@@ -4,6 +4,7 @@ const db = require('../db');
 
 // ฟังก์ชันตรวจสอบการส่งข้อมูลจาก ESP32
 async function checkMCUStatus() {
+  console.log('ESP32 status checking routine has started');
   // ดึงค่าจาก alert_config
   const alertConfigQuery = `
     SELECT mcu_disconnect_enabled, mcu_disconnect_delay,
@@ -28,9 +29,13 @@ async function checkMCUStatus() {
     GROUP BY panel_id
   `;
   const [latestData] = await db.promise().query(latestDataQuery);
+
    // ตรวจสอบว่า panel_id ไหนที่ยังส่งข้อมูลอยู่ภายในช่วงเวลาที่กำหนด และอัปเดตสถานะ
    const activePanels = latestData.filter(({ last_timestamp }) => last_timestamp >= delayThreshold);
-  if(activePanels > 0) {isOperating(activePanels);}
+   if(activePanels.length > 0) {
+    isOperating(activePanels);
+  }
+
   // ตรวจสอบว่า panel_id ไหนที่หยุดส่งข้อมูลนานเกิน mcu_disconnect_delay
   const inactivePanels = latestData.filter(({ last_timestamp }) => last_timestamp < delayThreshold);
   if (inactivePanels.length > 0) {
@@ -64,7 +69,7 @@ async function checkMCUStatus() {
           INSERT INTO alert_log (title, message, user_id) 
           VALUES (?, ?, ?)`;
         await db.promise().query(insertAlertQuery, [title, message, userId]);
-        console.log("Turn panel status to offline Mode");
+        console.log(`Turn panel ${panel_id} status to offline Mode`);
         // อัปเดตสถานะของ panel เป็น false
         const updateStatusQuery = `
           UPDATE panels 
@@ -78,16 +83,19 @@ async function checkMCUStatus() {
 
 async function isOperating(activePanels){
   for (const { panel_id } of activePanels) {
+    const statusQuery = 'SELECT status FROM panels WHERE id = ?';
+    const [statusResults] = await db.promise().query(statusQuery, [panel_id]);
+    if (statusResults[0].status) { continue;}
     const updateStatusQuery = `
       UPDATE panels 
       SET status = true  
       WHERE id = ?`;
     try {
       await db.promise().query(updateStatusQuery, [panel_id]);
-      console.log(`อัปเดตสถานะของแผง ${panel_id} ให้เป็น true`);
+      console.log(`Turn panel ${panel_id} status to online Mode`);
     } catch (error) { console.error(`ไม่สามารถอัปเดตสถานะของแผง ${panel_id} ได้:`, error);}
   }
 }
 
 // เรียกใช้ฟังก์ชันทุกๆ 5 นาที 5*60*1000
-setInterval(checkMCUStatus, 5*60*1000);
+setInterval(checkMCUStatus, 5*20*1000);
