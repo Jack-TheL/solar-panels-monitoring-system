@@ -1,0 +1,296 @@
+//query and reduce////////////////////////////////////////////////////////////////////////////////////////
+router.post('/report-data', (req, res) => {
+  const { panelId, startDate, endDate } = req.body;
+  const query = `
+    SELECT power, current, voltage, light, temperature, timestamp
+    FROM sensor_data
+    WHERE panel_id = ? AND timestamp BETWEEN ? AND ?
+  `;
+  db.query(query, [panelId, startDate, endDate], (err, results) => {
+    if (err) {
+      console.error("Error fetching data:", err);
+      return res.status(500).json({ message: "Database error", error: err });
+    }
+    // จัดรูปแบบข้อมูลที่ส่งกลับ
+    const formattedData = {
+      light: [], temperature: [],
+      current: [], voltage: [], power: []
+    };
+    results.forEach(data => {
+      const timestamp = new Date(data.timestamp).toISOString(); // แปลง timestamp เป็น ISO 8601 format
+      formattedData.power.push({ x: timestamp, y: data.power });
+      formattedData.current.push({ x: timestamp, y: data.current });
+      formattedData.voltage.push({ x: timestamp, y: data.voltage });
+      formattedData.temperature.push({ x:  timestamp, y: data.temperature });
+      formattedData.light.push({ x: timestamp, y: data.light });
+    });
+
+    // ลดจำนวนข้อมูล
+    const reduceData = (dataArray, maxCount) => {
+      while (dataArray.length > maxCount) {
+        const newDataArray = [];
+        for (let i = 0; i < dataArray.length - 1; i += 2) {
+          const x = (new Date(dataArray[i].x).getTime() + new Date(dataArray[i + 1]?.x).getTime()) / 2; // ค่ากลาง x
+          const y = (dataArray[i].y + (dataArray[i + 1]?.y || 0)) / 2; // ค่าเฉลี่ย y
+          newDataArray.push({ x: new Date(x).toISOString(), y }); // เพิ่มข้อมูลใหม่ในรูปแบบ ISO 8601
+        }
+        dataArray = newDataArray;
+      }
+      return dataArray;
+    };
+    // ใช้ฟังก์ชัน reduceData เพื่อปรับปรุงข้อมูล
+    formattedData.power = reduceData(formattedData.power, 93);
+    formattedData.current = reduceData(formattedData.current, 93);
+    formattedData.voltage = reduceData(formattedData.voltage, 93);
+    formattedData.temperature = reduceData(formattedData.temperature, 93);
+    formattedData.light = reduceData(formattedData.light, 93);
+    console.log(formattedData);
+    
+    res.status(200).json(formattedData);
+  });
+});
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///  start end query and reduce
+router.post('/report-data', (req, res) => {
+  const { panelId, startDate, endDate } = req.body;
+
+  const query = `
+    SELECT power, current, voltage, light, temperature, timestamp
+    FROM sensor_data
+    WHERE panel_id = ? AND timestamp BETWEEN ? AND ?
+  `;
+  db.query(query, [panelId, startDate, endDate], (err, results) => {
+    if (err) {
+      console.error("Error fetching data:", err);
+      return res.status(500).json({ message: "Database error", error: err });
+    }
+    // จัดรูปแบบข้อมูลที่ส่งกลับ
+    const formattedData = {
+      light: [],
+      temperature: [],
+      current: [],
+      voltage: [],
+      power: []
+    };
+    results.forEach(data => {
+      const timestamp = new Date(data.timestamp).toISOString(); // แปลง timestamp เป็น ISO 8601 format
+      formattedData.power.push({ x: timestamp, y: data.power });
+      formattedData.current.push({ x: timestamp, y: data.current });
+      formattedData.voltage.push({ x: timestamp, y: data.voltage });
+      formattedData.temperature.push({ x: timestamp, y: data.temperature });
+      formattedData.light.push({ x: timestamp, y: data.light });
+    });
+    // ลดจำนวนข้อมูล
+    const reduceData = (dataArray, maxCount) => {
+      while (dataArray.length > maxCount) {
+        const newDataArray = [];
+        for (let i = 0; i < dataArray.length - 1; i += 2) {
+          const x = (new Date(dataArray[i].x).getTime() + new Date(dataArray[i + 1]?.x).getTime()) / 2; // ค่ากลาง x
+          const y = (dataArray[i].y + (dataArray[i + 1]?.y || 0)) / 2; // ค่าเฉลี่ย y
+          newDataArray.push({ x: new Date(x).toISOString(), y }); // เพิ่มข้อมูลใหม่ในรูปแบบ ISO 8601
+        }
+        dataArray = newDataArray;
+      }
+      return dataArray;
+    };
+    // ใช้ฟังก์ชัน reduceData เพื่อปรับปรุงข้อมูล
+    formattedData.power = reduceData(formattedData.power, 93);
+    formattedData.current = reduceData(formattedData.current, 93);
+    formattedData.voltage = reduceData(formattedData.voltage, 93);
+    formattedData.temperature = reduceData(formattedData.temperature, 93);
+    formattedData.light = reduceData(formattedData.light, 93);
+    // เพิ่ม startDate และ endDate ลงในข้อมูลที่ส่งกลับ
+    const startDateFormatted = new Date(startDate).toISOString(); // แปลง startDate เป็น ISO 8601
+    const endDateFormatted = new Date(endDate).toISOString(); // แปลง endDate เป็น ISO 8601
+    // ตรวจสอบว่ามีข้อมูลตรงกับ startDate และ endDate หรือไม่
+    const startData = formattedData.power.find(data => data.x === startDateFormatted) || { x: startDateFormatted, y: null };
+    const endData = formattedData.power.find(data => data.x === endDateFormatted) || { x: endDateFormatted, y: null };
+    // สร้างผลลัพธ์ใหม่ที่รวม startDate และ endDate
+    const result = {
+      light: [startData, ...formattedData.light, endData],
+      temperature: [startData, ...formattedData.temperature, endData],
+      current: [startData, ...formattedData.current, endData],
+      voltage: [startData, ...formattedData.voltage, endData],
+      power: [startData, ...formattedData.power, endData],
+    };
+    res.status(200).json(result);
+  });
+});
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+router.post('/report-data', (req, res) => {
+  const { panelId, startDate, endDate } = req.body;
+  
+  db.query(`
+    SELECT power, current, voltage, light, temperature, timestamp
+    FROM sensor_data 
+    WHERE panel_id = ? AND timestamp BETWEEN ? AND ?
+  `, [panelId, startDate, endDate], (error, results) => {
+    if (error) {
+      console.error("Error fetching past data:", error);
+      return res.status(500).json({ message: "Database error", error: error });
+    }
+
+    const formattedData = {
+      light: [],
+      temperature: [],
+      current: [],
+      voltage: [],
+      power: []
+    };
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const oneHour = 60 * 60 * 1000; // จำนวนมิลลิวินาทีใน 1 ชั่วโมง
+
+    // สร้างแผนที่เพื่อเก็บข้อมูลตามช่วงเวลา
+    const dataMap = {};
+
+    // เติมข้อมูลลงใน dataMap ตามช่วงเวลา
+    results.forEach(data => {
+      const timestamp = new Date(data.timestamp);
+      const hourKey = new Date(Math.floor(timestamp.getTime() / oneHour) * oneHour).toISOString(); // ปัดเวลาให้เป็นช่วงชั่วโมง
+      if (!dataMap[hourKey]) {
+        dataMap[hourKey] = { 
+          power: [],
+          current: [],
+          voltage: [],
+          light: [],
+          temperature: []
+        };
+      }
+      dataMap[hourKey].power.push(data.power);
+      dataMap[hourKey].current.push(data.current);
+      dataMap[hourKey].voltage.push(data.voltage);
+      dataMap[hourKey].light.push(data.light);
+      dataMap[hourKey].temperature.push(data.temperature);
+    });
+
+    // คำนวณค่าเฉลี่ยและสร้างค่ากลาง (x,y)
+    for (let time = start; time <= end; time = new Date(time.getTime() + oneHour)) {
+      const hourKey = time.toISOString();
+      if (dataMap[hourKey]) {
+        const averages = {
+          power: dataMap[hourKey].power.reduce((a, b) => a + b, 0) / dataMap[hourKey].power.length,
+          current: dataMap[hourKey].current.reduce((a, b) => a + b, 0) / dataMap[hourKey].current.length,
+          voltage: dataMap[hourKey].voltage.reduce((a, b) => a + b, 0) / dataMap[hourKey].voltage.length,
+          light: dataMap[hourKey].light.reduce((a, b) => a + b, 0) / dataMap[hourKey].light.length,
+          temperature: dataMap[hourKey].temperature.reduce((a, b) => a + b, 0) / dataMap[hourKey].temperature.length
+        };
+
+        formattedData.power.push({ x: time.toISOString(), y: averages.power });
+        formattedData.current.push({ x: time.toISOString(), y: averages.current });
+        formattedData.voltage.push({ x: time.toISOString(), y: averages.voltage });
+        formattedData.light.push({ x: time.toISOString(), y: averages.light });
+        formattedData.temperature.push({ x: time.toISOString(), y: averages.temperature });
+      } else {
+        // ถ้าไม่มีข้อมูลในช่วงนั้น ให้ใส่ null
+        formattedData.power.push({ x: time.toISOString(), y: null });
+        formattedData.current.push({ x: time.toISOString(), y: null });
+        formattedData.voltage.push({ x: time.toISOString(), y: null });
+        formattedData.light.push({ x: time.toISOString(), y: null });
+        formattedData.temperature.push({ x: time.toISOString(), y: null });
+      }
+    }
+    res.status(200).json(formattedData);
+  });
+});
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+router.post('/report-data', (req, res) => {
+  const { panelId, startDate, endDate } = req.body;
+
+  // แปลง startDate และ endDate เป็น timestamp
+  const startTimestamp = new Date(startDate).getTime();
+  const endTimestamp = new Date(endDate).getTime();
+
+  // ระยะห่างเวลา 1 ชั่วโมงในหน่วย milliseconds
+  const oneHour = 60 * 60 * 1000;
+
+  const query = `
+    SELECT power, current, voltage, light, temperature, timestamp
+    FROM sensor_data
+    WHERE panel_id = ? AND timestamp BETWEEN ? AND ?
+    ORDER BY timestamp ASC
+  `;
+  
+  db.query(query, [panelId, startDate, endDate], (err, results) => {
+    if (err) {
+      console.error("Error fetching data:", err);
+      return res.status(500).json({ message: "Database error", error: err });
+    }
+
+    // เตรียมข้อมูลค่าเฉลี่ยสำหรับแต่ละช่วง 1 ชั่วโมง
+    const formattedData = {
+      light: [], temperature: [],
+      current: [], voltage: [], power: []
+    };
+
+    // สร้างตัวแปรสำหรับเก็บผลเฉลี่ยในแต่ละช่วงเวลา
+    let tempData = {
+      light: 0, temperature: 0,
+      current: 0, voltage: 0, power: 0,
+      count: 0
+    };
+
+    let currentIntervalStart = startTimestamp;
+
+    results.forEach(row => {
+      const dataTimestamp = new Date(row.timestamp).getTime();
+
+      // ถ้าเกิน 1 ชั่วโมง ให้เก็บค่าเฉลี่ยและเริ่มคำนวณใหม่
+      while (dataTimestamp >= currentIntervalStart + oneHour) {
+        if (tempData.count > 0) {
+          // หาค่าเฉลี่ยในช่วงที่ผ่านมา
+          const averageTimestamp = new Date(currentIntervalStart).toISOString();
+          formattedData.power.push({ x: averageTimestamp, y: tempData.power / tempData.count });
+          formattedData.current.push({ x: averageTimestamp, y: tempData.current / tempData.count });
+          formattedData.voltage.push({ x: averageTimestamp, y: tempData.voltage / tempData.count });
+          formattedData.temperature.push({ x: averageTimestamp, y: tempData.temperature / tempData.count });
+          formattedData.light.push({ x: averageTimestamp, y: tempData.light / tempData.count });
+        }
+
+        // เคลียร์ข้อมูลและตั้งค่าเริ่มต้นสำหรับช่วงถัดไป
+        tempData = { light: 0, temperature: 0, current: 0, voltage: 0, power: 0, count: 0 };
+        currentIntervalStart += oneHour;
+      }
+
+      // สะสมค่าข้อมูลในช่วงเวลาปัจจุบัน
+      tempData.light += row.light;
+      tempData.temperature += row.temperature;
+      tempData.current += row.current;
+      tempData.voltage += row.voltage;
+      tempData.power += row.power;
+      tempData.count += 1;
+    });
+
+    // จัดการช่วงสุดท้ายถ้ามีข้อมูลเหลืออยู่
+    if (tempData.count > 0) {
+      const averageTimestamp = new Date(currentIntervalStart).toISOString();
+      formattedData.power.push({ x: averageTimestamp, y: tempData.power / tempData.count });
+      formattedData.current.push({ x: averageTimestamp, y: tempData.current / tempData.count });
+      formattedData.voltage.push({ x: averageTimestamp, y: tempData.voltage / tempData.count });
+      formattedData.temperature.push({ x: averageTimestamp, y: tempData.temperature / tempData.count });
+      formattedData.light.push({ x: averageTimestamp, y: tempData.light / tempData.count });
+    }
+
+    // ใส่ข้อมูล startDate เป็นข้อมูลแรก
+    const startISO = new Date(startTimestamp).toISOString();
+    formattedData.power.unshift({ x: startISO, y: null });
+    formattedData.current.unshift({ x: startISO, y: null });
+    formattedData.voltage.unshift({ x: startISO, y: null });
+    formattedData.temperature.unshift({ x: startISO, y: null });
+    formattedData.light.unshift({ x: startISO, y: null });
+
+    // ใส่ข้อมูล endDate เป็นข้อมูลสุดท้าย
+    const endISO = new Date(endTimestamp).toISOString();
+    formattedData.power.push({ x: endISO, y: null });
+    formattedData.current.push({ x: endISO, y: null });
+    formattedData.voltage.push({ x: endISO, y: null });
+    formattedData.temperature.push({ x: endISO, y: null });
+    formattedData.light.push({ x: endISO, y: null });
+
+    // ส่งข้อมูลกลับ
+    res.status(200).json(formattedData);
+  });
+});
