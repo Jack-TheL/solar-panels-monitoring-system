@@ -37,14 +37,14 @@ async function checkMCUStatus() {
   }
 
   // ตรวจสอบว่า panel_id ไหนที่หยุดส่งข้อมูลนานเกิน mcu_disconnect_delay
-  const inactivePanels = latestData.filter(({ last_timestamp }) => last_timestamp < delayThreshold);
+  const inactivePanels = latestData.filter(({ last_timestamp }) => last_timestamp < delayThreshold);  
   if (inactivePanels.length > 0) {
     for (const { panel_id } of inactivePanels) {
       // ดึง user_id จาก panel_id
       const userIdQuery = 'SELECT user_id, name, status FROM panels WHERE id = ?';
       const [userResults] = await db.promise().query(userIdQuery, [panel_id]);
       if (!userResults[0].status) { continue; }
-
+      
       if (userResults.length > 0) {
         const userId = userResults[0].user_id;
         const panelName = userResults[0].name;
@@ -63,14 +63,14 @@ async function checkMCUStatus() {
         if(alertConfig[0].email_alert_enabled || alertConfig[0].system_alert_enabled){
           await sendEmailAlert(userId, title, message);
         }
-        console.log("Save Alerts Activity");
         // บันทึกการแจ้งเตือนลงใน alert_history
+        console.log("Panel offline alert saved");
         const insertAlertQuery = `
           INSERT INTO alert_log (title, message, user_id) 
           VALUES (?, ?, ?)`;
         await db.promise().query(insertAlertQuery, [title, message, userId]);
-        console.log(`Turn panel ${panel_id} status to offline Mode`);
         // อัปเดตสถานะของ panel เป็น false
+        console.log(`Turn panel ${panel_id} status to offline Mode`);
         const updateStatusQuery = `
           UPDATE panels 
           SET status = false 
@@ -98,4 +98,4 @@ async function isOperating(activePanels){
 }
 
 // เรียกใช้ฟังก์ชันทุกๆ 5 นาที 5*60*1000
-setInterval(checkMCUStatus, 5*20*1000);
+setInterval(checkMCUStatus, 5*60*1000);
