@@ -6,7 +6,7 @@ int spdLv3;
 int minTemp;
 int maxTemp;
 
-const char* mqtt_server = "788673f83d584b9fa780154a7e8d079e.s1.eu.hivemq.cloud";
+const char* mqtt_server = "e2dc3e02e77e44838ebd1dad156c8d66.s1.eu.hivemq.cloud";
 const int mqtt_port = 8883;
 
 WiFiClientSecure espClient;

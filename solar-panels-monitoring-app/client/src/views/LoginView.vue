@@ -78,7 +78,8 @@ export default {
         }
       } catch (error) {
         console.error('Error during login:', error);
-        this.errorMessage = 'Unable to connect to the server. Please try again later.';
+        this.errorMessage = error.response.data.message;
+        // this.errorMessage = 'Unable to connect to the server. Please try again later.';
       }
     }
   }

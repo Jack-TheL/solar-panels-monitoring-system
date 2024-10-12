@@ -5,7 +5,7 @@ const mysql = require('mysql2');
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: 'Root',
+    password: 'AdminRooter01',
     database: 'pv_monitoring_app'
 });
 

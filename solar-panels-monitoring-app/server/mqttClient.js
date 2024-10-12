@@ -6,11 +6,12 @@ const { checkAlerts } = require('./alerts/alertsHandler');
 ///// MQTT (HiveMQ Cloud)////////
 // MQTT client setup
 const mqttOptions = {
-    host: '788673f83d584b9fa780154a7e8d079e.s1.eu.hivemq.cloud',
+    host: 'e2dc3e02e77e44838ebd1dad156c8d66.s1.eu.hivemq.cloud',
+  //788673f83d584b9fa780154a7e8d079e.s1.eu.hivemq.cloud
     port: 8883,
     protocol: 'mqtts',
-    username: 'hivemq.webclient.1727115561302',
-    password: '2npwP.Gt*R,sV%10Hb8Z',
+    username: 'hivemq.webclient.1728642866817', 
+    password: '#247BRALXPwd9.k:pcv,',
 };
 const client = mqtt.connect(mqttOptions); // Creating MQTT client
 // Handle MQTT connection
@@ -25,11 +26,12 @@ client.on('connect', () => {
 let liveData = {};
 // Handle incoming MQTT messages
 client.on('message', (topic, message) => {
-  // console.log(`Received message on ${topic}: ${message.toString()}`);
+  console.log(`Received message on ${topic}: ${message.toString()}`);;
   const data = JSON.parse(message.toString());
   const { macAddress, ...sensorData } = data;
   liveData[macAddress] = sensorData;
   
+  // liveData[macAddress].light/=1000 
   // console.log(liveData[macAddress]);
   // หา panel_id จาก macAddress
   const query = 'SELECT panel_id FROM esp32 WHERE mac_address = ?';
@@ -53,7 +55,12 @@ client.on('message', (topic, message) => {
         if (err) { console.error('Error inserting sensor data:', err); return; }
         // console.log('Sensor data inserted successfully:', result.insertId);
       });
-    } else { console.log('No panel found for MAC address:', macAddress); }
+    } else { 
+      console.log('No panel_id found for MAC address:', macAddress);
+      // Publish to MQTT topic
+      client.publish(`clearCredential/${macAddress}`, '');
+      console.log(`Publishing to topic: clearCredential/${macAddress}`);
+    }
   });
 
   // ตรวจสอบเงื่อนไขการแจ้งเตือน
@@ -64,5 +71,5 @@ client.on('message', (topic, message) => {
 module.exports = { client, liveData };
 
 // Main ESP32 Mac
-// First ---> FC:E8:C0:74:AE:F8 >> user   hivemq.webclient.1727695560857 >> pass   8ec.@XM>ZbUj5?G70Yqr
-// Second ---> CC:DB:A7:3F:85:38 >> user   hivemq.webclient.1727893921201 >> pass   Fi68G3ODfsQ*;>2Ptj$q
+// First ---> FC:E8:C0:74:AE:F8 >> user   hivemq.webclient.1728646005092 >> pass   T>Rpml348$Eo0f:JtBV@
+// Second ---> CC:DB:A7:3F:85:38 >> user   hivemq.webclient.1728644948114 >> pass   V7BOl;aX3w9!0cE@Cko&

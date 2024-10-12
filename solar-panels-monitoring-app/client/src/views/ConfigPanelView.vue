@@ -53,12 +53,13 @@ const deletePanel = async () => {
   try {
     const response = await axios.delete(`${BASE_API_URL}/api/delete-panel/${panelId}`);
     if (response.status === 200) {
-      alert('Delete panel successfully');
+      alert(response.data.message);
       router.replace({ name: 'panels' }); ;
-    } else { alert('Failed to delete panel'); }
+    } else { response.data.message; }
   } catch (error) {
     console.error('Error deleting panel:', error);
-    alert('Unable to connect to the server. Please try again later.');
+    alert(error.response.data.message);
+    // alert('Unable to connect to the server. Please try again later.');
   }
 };
 const editSettings = () => { isEditing.value = true;};

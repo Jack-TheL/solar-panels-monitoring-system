@@ -50,7 +50,6 @@ CREATE TABLE esp32 (
         REFERENCES panels(id) 
         ON DELETE CASCADE
 );
-
 CREATE TABLE sensor_data (
     id INT AUTO_INCREMENT PRIMARY KEY,
     current FLOAT NOT NULL,
@@ -65,7 +64,6 @@ CREATE TABLE sensor_data (
         REFERENCES panels(id) 
         ON DELETE CASCADE 
 );
-
 CREATE TABLE alert_config (
     id INT AUTO_INCREMENT PRIMARY KEY,
     system_alert_enabled BOOLEAN DEFAULT TRUE,
@@ -80,7 +78,6 @@ CREATE TABLE alert_config (
     mcu_disconnect_delay INT DEFAULT 300,
     email_alert_enabled BOOLEAN DEFAULT TRUE
 );
-
 CREATE TABLE alert_log (
     id INT AUTO_INCREMENT PRIMARY KEY,        
     title VARCHAR(255) NOT NULL,  

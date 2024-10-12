@@ -188,30 +188,24 @@ router.put('/update-panel/:id', (req, res) => {
 // Delete
 router.delete('/delete-panel/:id', (req, res) => {
   const panelId = req.params.id;
-  if (!panelId) { 
-      return res.status(400).json({ message: 'ไม่พบ panelId' }); 
-  }
+  if (!panelId) {  return res.status(400).json({ message: 'ไม่พบ panelId' }); }
   // Query to get mac_address from esp32 table
   const macAddressQuery = 'SELECT mac_address FROM esp32 WHERE panel_id = ?';
   db.query(macAddressQuery, [panelId], (err, macResult) => {
       if (err) {
-          console.error('เกิดข้อผิดพลาดในการดึง mac_address:', err);
-          return res.status(500).json({ message: 'เกิดข้อผิดพลาดในการดึง mac_address' });
+        console.error('เกิดข้อผิดพลาดในการดึง mac_address:', err);
+        return res.status(500).json({ message: 'เกิดข้อผิดพลาดในการดึง mac_address' });
       }
-      if (macResult.length === 0) {
-          return res.status(404).json({ message: 'ไม่พบแผงในระบบ' });
-      }
+      if (macResult.length === 0) { return res.status(404).json({ message: 'ไม่พบแผงในระบบ' });}
       const mac_address = macResult[0].mac_address;
       // Delete panel
       const query = 'DELETE FROM panels WHERE id = ?';
       db.query(query, [panelId], (err, result) => {
           if (err) {
-              console.error('เกิดข้อผิดพลาดในการลบแผง:', err);
-              return res.status(500).json({ message: 'เกิดข้อผิดพลาดในการลบแผง' });
+            console.error('เกิดข้อผิดพลาดในการลบแผง:', err);
+            return res.status(500).json({ message: 'เกิดข้อผิดพลาดในการลบแผง' });
           }
-          if (result.affectedRows === 0) {
-              return res.status(404).json({ message: 'ไม่พบแผงในระบบ' });
-          }
+          if (result.affectedRows === 0) { return res.status(404).json({ message: 'ไม่พบแผงในระบบ' }); }
           // Publish to MQTT topic
           client.publish(`clearCredential/${mac_address}`, '');
           console.log(`Publishing to topic: clearCredential/${mac_address}`);

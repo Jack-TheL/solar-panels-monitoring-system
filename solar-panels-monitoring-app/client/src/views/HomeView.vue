@@ -124,7 +124,7 @@ onUnmounted(() => { clearInterval(timeout.value);  });
             <v-col class="text-center">
               <div class="text-white">พลังงานที่ผลิตทั้งหมดของทุกแผง</div>
               <h3 class="text-white">
-                {{summary.totalWh>=1000? `${summary.totalWh/1000} kWh`: `${summary.totalWh} Wh`}}
+                {{summary.totalWh>=1000? `${(summary.totalWh/1000).toFixed(2)} kWh`: `${summary.totalWh} Wh`}}
               </h3>
             </v-col>
             <v-col class="text-center">

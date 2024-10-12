@@ -43,14 +43,13 @@ const handleDelete = async () => {
   try {
     const response = await axios.delete(`${BASE_API_URL}/api/delete-user/${userId.value}`);
     if (response.status === 200) {
-      alert('Delete user successfully');
+      alert(response.data.message);
       router.replace({ name: 'login-history' }); ;
-    } else {
-      alert('Failed to delete user');
-    }
+    } else { alert(response.data.message); }
   } catch (error) {
     console.error('Error deleting user:', error);
-    alert('Unable to connect to the server. Please try again later.');
+    alert(error.response.data.message);
+    // alert('Unable to connect to the server. Please try again later.');
   }
 };
 
