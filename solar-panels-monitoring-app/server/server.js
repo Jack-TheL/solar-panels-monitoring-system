@@ -25,7 +25,7 @@ app.post('/api/new-credentials', (req, res) => {
   const { mac_address } = req.body;
   if (!mac_address) { return res.status(400).json({ error: 'MAC address is required' });}
   console.log('Received MAC Address: ' + mac_address);
-  db.query('SELECT mqtt_user, mqtt_pass FROM esp32 WHERE mac_address = ? AND attached = false', 
+  db.query('SELECT mqtt_user, mqtt_pass FROM esp32 WHERE mac_address = ?', 
   [mac_address], (error, results) => {
     if (error) { console.error('Error fetching data: ' + error.stack);
       return res.status(500).json({ error: 'Database error' });
@@ -37,7 +37,7 @@ app.post('/api/new-credentials', (req, res) => {
       // อัปเดตตาราง esp32 ให้ attached เป็น true สำหรับ mac_address
       db.query('UPDATE esp32 SET attached = true WHERE mac_address = ?', [mac_address], (updateError) => {
         if (updateError) {
-          console.error('Error updating data: ' + updateError.stack);
+         console.error('Error updating data: ' + updateError.stack);
          return res.status(500).json({ error: 'Database error during update' });
         }      
        // ส่งข้อมูลกลับไปยังผู้เรียก API
