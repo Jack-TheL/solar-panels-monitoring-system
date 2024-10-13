@@ -90,7 +90,11 @@ void setup() {
 
 void loop() {
   unsigned long currentMillis = millis();
-  handleMQTT();
+  
+  if(WiFi.status() != WL_CONNECTED){ 
+    wifiManager.setup(); wifiManager.blinker.detach(); digitalWrite(LED_BUILTIN, LOW);
+  } else { handleMQTT(); }
+
   if (currentMillis - previousMillis >= interval) {
     previousMillis = currentMillis;
     if (WiFi.status() == WL_CONNECTED) {
@@ -105,8 +109,5 @@ void loop() {
       // Send Data to MQTT Broker
       publishData(ina219.begin(), temperature, voltage, current, power, light);
     } else { wifiManager.setup(); wifiManager.blinker.detach(); digitalWrite(LED_BUILTIN, LOW);}
-  }
-  if(WiFi.status() != WL_CONNECTED){ 
-    wifiManager.setup(); wifiManager.blinker.detach(); digitalWrite(LED_BUILTIN, LOW);
   }
 }

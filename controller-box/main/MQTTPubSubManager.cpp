@@ -108,7 +108,9 @@ void setupFanLv(){
 }
 
 void reconnectToMQTT() {
-  while (!client.connected()) {
+  int attemptCount = 0; // นับจำนวนครั้งที่พยายามเชื่อมต่อ
+
+  while (!client.connected() && attemptCount<12 ) {
     Serial.print("Attempting MQTT connection..."); 
     if (client.connect(getMacAddress().c_str(), mqtt_user.c_str(), mqtt_pass.c_str())) {
       Serial.println("connected");
@@ -129,8 +131,15 @@ void reconnectToMQTT() {
     } else {
       Serial.print("failed, rc=");
       Serial.println(client.state());
-      delay(5000);
+      attemptCount++; delay(5000);
     }
+  }
+  // ถ้าพยายามครบ 12 ครั้งแล้วยังเชื่อมต่อไม่สำเร็จ ให้ล้างข้อมูลและรีสตาร์ท ESP32
+  if (!client.connected()) {
+    Serial.println("MQTT connection timeout. Restarting ESP32...");
+    preferences.begin("credential", false);
+    preferences.clear(); preferences.end();
+    ESP.restart(); // รีสตาร์ท ESP32
   }
 }
 
