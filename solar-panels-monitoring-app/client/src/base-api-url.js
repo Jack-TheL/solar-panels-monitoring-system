@@ -1,8 +1,8 @@
 // import axios from 'axios';
 
 
-const BASE_API_URL = 'https://rrvxlzsz-3000.asse.devtunnels.ms';
-//const localBaseURL = 'http://localhost:3000';
+// const BASE_API_URL = 'https://rrvxlzsz-3000.asse.devtunnels.ms';
+const BASE_API_URL = 'http://localhost:3000';
 
 export default BASE_API_URL;
 

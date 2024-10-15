@@ -98,4 +98,4 @@ async function isOperating(activePanels){
 }
 
 // เรียกใช้ฟังก์ชันทุกๆ 5 นาที 5*60*1000
-setInterval(checkMCUStatus, 5*60*1000);
+setInterval(checkMCUStatus, 30*1000);

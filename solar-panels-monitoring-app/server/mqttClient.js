@@ -26,7 +26,7 @@ client.on('connect', () => {
 let liveData = {};
 // Handle incoming MQTT messages
 client.on('message', (topic, message) => {
-  console.log(`Received message on ${topic}: ${message.toString()}`);;
+  console.log(`Received message on ${topic}: ${message.toString()}`);
   const data = JSON.parse(message.toString());
   const { macAddress, ...sensorData } = data;
   liveData[macAddress] = sensorData;

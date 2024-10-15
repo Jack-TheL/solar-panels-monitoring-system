@@ -55,7 +55,7 @@ onUnmounted(() => { clearInterval(timeout.value);  });
         <v-col class="text-center">
             <div class="text-white">พลังงานรวมที่ผลิตทั้งหมด</div>
             <h3 class="text-white">
-              {{ panelData.totalEnergy>=1000? `${panelData.totalEnergy/1000} kWh` : `${panelData.totalEnergy} Wh` }}
+              {{ panelData.totalEnergy>=1000? `${(panelData.totalEnergy/1000).toFixed(2)} kWh` : `${panelData.totalEnergy} Wh` }}
             </h3>
         </v-col>
         <v-col class="text-center">

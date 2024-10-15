@@ -97,7 +97,14 @@ export default {
       if (notification) { notification.read = true; }
     },
     connectWebSocket(userId) {
-      const socket = new WebSocket('wss://rrvxlzsz-3000.asse.devtunnels.ms/'); //ws://localhost:8080
+      let web_socket;
+      if (BASE_API_URL.startsWith('http://')) {
+        web_socket = `ws://${BASE_API_URL.replace('http://', '')}`;
+      } else if (BASE_API_URL.startsWith('https://')) {
+        web_socket = `wss://${BASE_API_URL.replace('https://', '')}`;
+      }
+      const socket = new WebSocket(web_socket); // ws://localhost:3000
+      
       socket.onopen = () => {
         console.log('WebSocket connection opened');
         socket.send(JSON.stringify({ userId })); // ส่ง userId ไปยัง server
