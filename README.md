@@ -1,1 +1,1 @@
-# solar-panels-monitoring-system
+# Solar Panels Monitoring System
